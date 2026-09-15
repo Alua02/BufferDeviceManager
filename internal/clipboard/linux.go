@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"os/exec"
 	"strings"
@@ -8,10 +9,8 @@ import (
 )
 
 type Message struct {
-	Type      string `json:"type"`
-	DeviceID  string `json:"device_id"`
-	MessageID string `json:"message_id"`
-	Content   string `json:"content"`
+	Type    string `json:"type"`
+	Content string `json:"content"`
 }
 
 func getClipBoard() (string, error) {
@@ -30,6 +29,7 @@ func setClipBoard(text string) error {
 
 func main() {
 	var previous string
+
 	for {
 		current, err := getClipBoard()
 		if err != nil {
@@ -41,7 +41,16 @@ func main() {
 			fmt.Println("Clipboard changed:")
 			fmt.Printf("%q\n", current)
 			previous = current
-
+			message := Message{
+				Type:    "clipboard.set",
+				Content: current,
+			}
+			data, err := json.Marshal(message)
+			if err != nil {
+				fmt.Println("JSON error:", err)
+				continue
+			}
+			fmt.Println(string(data))
 		}
 		time.Sleep(200 * time.Millisecond)
 	}
